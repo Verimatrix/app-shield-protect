@@ -1,5 +1,9 @@
 name: 'App Shield protect'
 description: 'Protect mobile application with Verimatrix App Shield'
+author: 'Verimatrix'
+branding:
+  icon: upload-cloud
+  color: purple
 inputs:
   api-key-id:
     description: 'API Key ID'
