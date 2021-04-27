@@ -1,0 +1,23 @@
+name: 'App Shield protect'
+description: 'Protect mobile application with Verimatrix App Shield'
+inputs:
+  api-key-id:
+    description: 'API Key ID'
+    required: true
+  api-key-secret:
+    description: 'API Key Secret'
+    required: true
+  app-file:
+    description: 'Mobile application file'
+    required: true
+
+outputs:
+  protected-file:
+    description: 'Protected application file name'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    APS_KEY: ${{ inputs.api-key-id }}
+    APS_SECRET: ${{ inputs.api-key-secret }}
+    APP_FILE: ${{ inputs.app-file }}

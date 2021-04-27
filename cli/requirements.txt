@@ -1,0 +1,5 @@
+requests==2.25.1
+coloredlogs==15.0
+python_dateutil==2.8.1
+pyaxmlparser===0.3.24
+js2py===0.70
