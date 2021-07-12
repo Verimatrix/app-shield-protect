@@ -16,7 +16,7 @@ Action requires the following parameters:
 
    * `api-key-id` -  APS api key id 
    * `api-key-secret` - APS api key secret
-   * `app_file` -  mobile application file (_.zip_ or _.apk_)
+   * `app_file` -  mobile application file (_.zip_, _.apk_ or _aab_)
 
 APS key id and APS key secret can be created and retrieved in [Verimatrix App Shield](https://appshield.verimatrixcloud.net/Developer)
 portal under **My Account -> Developer** menu.  
