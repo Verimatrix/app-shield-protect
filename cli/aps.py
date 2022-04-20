@@ -78,11 +78,8 @@ class Aps:
                             action='store_true',
                             help='Verbose debug output')
 
-        parser.add_argument('-u', '--username', type=str, help='Username (email)')
-        parser.add_argument('-p', '--password', type=str, help='Password')
-
-        parser.add_argument('-c', '--client-id', type=str, help='Client ID')
-        parser.add_argument('-s', '--client-secret', type=str, help='Client secret')
+        parser.add_argument('-c', '--client-id', type=str, help='App Shield API Key ID. Key must have Protection scope.')
+        parser.add_argument('-s', '--client-secret', type=str, help='App Shielid API Key secret.')
 
         # find the index of the command argument
         self.command_pos = len(sys.argv)
@@ -128,17 +125,13 @@ class Aps:
 
         config = get_config()
 
-        if args.username and args.password:
-            headers = authenticate_password(args.username, args.password, config)
-            using_client_secret = False
-        elif args.client_id and args.client_secret:
+        if args.client_id and args.client_secret:
             headers = authenticate_secret(args.client_id, args.client_secret, config)
             using_client_secret = True
         else:
             msg = ('Error: missing authentication credentials.\n'
-                   'Either a --username, --password pair or a --client-id, --client-secret\n'
-                   'pair of arguments must be provided')
-            print(msg)
+                   'A --client-id, --client-secret pair of arguments must be provided')
+            LOGGER.error(msg)
             sys.exit(1)
 
         openapi_file = os.path.abspath(os.path.join(os.pardir, os.pardir, 'versions', 'openapi.txt'))
@@ -163,12 +156,20 @@ class Aps:
 
         parser.add_argument('--file', type=str, required=True,
                             help='Build file (aab, apk or zipped xcarchive folder)')
+        parser.add_argument('--skip-checks', help='Skip pre-upload checks on the app.', action='store_true', default=False)
+        parser.add_argument('--application-id', type=str, required=False, 
+                            help='''Application ID. This identifies the application being protected.
+                            If --skip-checks is used this argument is mandatory''')
+        
         # inside subcommands ignore the first command_pos argv's
         args = parser.parse_args(sys.argv[self.command_pos:])
+        options = {}
+        options['skip_checks'] = args.skip_checks
+        options['application_id'] = args.application_id
 
         self.parse_global_args(global_args)
 
-        return self.commands.protect(args.file)
+        return self.commands.protect(args.file, options)
 
     def get_account_info(self, global_args):
         '''Get info about the user and organization'''
