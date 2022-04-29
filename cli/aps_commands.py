@@ -261,6 +261,7 @@ class ApsCommands():
         if 'errorMessage' in response:
             LOGGER.debug('upload build success call failed, delete build')
             self.delete_build(build_id)
+        
         return response
 
     def add_build_without_app(self, file, set_metadata=True):
@@ -371,7 +372,7 @@ class ApsCommands():
         LOGGER.debug('Add build to application response: %s', response.json())
         return response.json()
 
-    def protect(self, file):
+    def protect(self, file, options):
         '''High level protect command.
         This operation does the following
         - add_build
@@ -380,12 +381,18 @@ class ApsCommands():
         - protect_download'''
 
         # First add the build
-        build = self.add_build_without_app(file)
+        build = self.add_build_without_app(file, not options['skip_checks'])
         if 'errorMessage' in build:
             LOGGER.error('Failed to add new build %s', common.getSimpleErrorMessage(build['errorMessage']))
             return False
 
-        applicationPackageId = build['applicationPackageId']
+        if options['application_id'] == None:
+            if options['skip_checks']:
+                LOGGER.error('--application-id must be specified when skip-checks is used')
+                return False
+            applicationPackageId = build['applicationPackageId']
+        else:
+            applicationPackageId = options['application_id']
         os = get_os(file)
 
         applications = self.list_applications(None)
@@ -462,6 +469,7 @@ class ApsCommands():
             print('Protection succeeded with build id:%s' % build['id'])
         else:
             print('Protection failed with build id:%s' % build['id'])
+            print('Turn on verbose logging (-v) for more details')
 
 
     def get_build_artifacts(self, build_id):
