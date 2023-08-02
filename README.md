@@ -1,14 +1,14 @@
-# Verimatrix App Shield
+# Verimatrix XTD and Counterspy
 
-This action integrates Verimatrix App Shield into your GitHub build workflow. It automates
+This action integrates Verimatrix Extended Threat Defense and Counterspy into your GitHub build workflow. It automates
 the protection of your Android and iOS apps so you can run it whenever a new version 
 of your application is built. 
 
-Verimatrix App Shield is a zero-code in-app protection service. It protects your apps from 
+[Verimatrix XTD and Counterspy](https://portal.platform.verimatrixcloud.net/) is a zero-code in-app protection service. It protects your apps from 
 reverse engineering and attack through a layered security approach. Protection layers include
 obfuscation, environmental checks and binary integrity checks. 
 
-A [Verimatrix App Shield](https://appshield.verimatrixcloud.net/) Pro account is required to use this Action. 
+All **XTD** accounts support this action, while for **Counterspy** you need a standard account. 
 
 ## Inputs
 
@@ -18,8 +18,8 @@ Action requires the following parameters:
    * `api-key-secret` - APS api key secret
    * `app_file` -  mobile application file (_.zip_, _.apk_ or _aab_)
 
-APS key id and APS key secret can be created and retrieved in [Verimatrix App Shield](https://appshield.verimatrixcloud.net/Developer)
-portal under **My Account -> Developer** menu.  
+APS key id and APS key secret can be created and retrieved in [Verimatrix XTD and Counterspy](https://portal.platform.verimatrixcloud.net/)
+portal under **Settings -> API Key Manager** menu.  
 
 ## Outputs
 
@@ -35,7 +35,7 @@ to save the file as a build artifact.
 ```yaml
 - name: APS protection
   id: aps
-  uses: verimatrix/app-shield-protect@v1
+  uses: verimatrix/app-protect@v2
   with:
     api-key-id: ${{ secrets.APS_KEY_ID }}
     api-key-secret: ${{ secrets.APS_KEY_SECRET }}
