@@ -22,6 +22,6 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   env:
-    APS_KEY: ${{ inputs.api-key-id }}
-    APS_SECRET: ${{ inputs.api-key-secret }}
+    API_KEY_ID: ${{ inputs.api-key-id }}
+    API_SECRET: ${{ inputs.api-key-secret }}
     APP_FILE: ${{ inputs.app-file }}
