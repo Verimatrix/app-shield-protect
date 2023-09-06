@@ -11,6 +11,12 @@ inputs:
   api-key-secret:
     description: 'API Key Secret'
     required: true
+  api-gateway-url:
+    description: 'Optional API Gateway URL'
+    required: false
+  access-token-url:
+    description: 'Optional Access Token URL'
+    required: false
   app-file:
     description: 'Mobile application file'
     required: true
@@ -24,4 +30,6 @@ runs:
   env:
     API_KEY_ID: ${{ inputs.api-key-id }}
     API_SECRET: ${{ inputs.api-key-secret }}
+    API_GATEWAY_URL: ${{ inputs.api-gateway-url }}
+    ACCESS_TOKEN_URL: ${{ inputs.access-token-url }}
     APP_FILE: ${{ inputs.app-file }}

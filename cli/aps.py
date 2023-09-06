@@ -80,6 +80,8 @@ class Aps:
 
         parser.add_argument('-c', '--client-id', type=str, help='App Shield API Key ID. Key must have Protection scope.')
         parser.add_argument('-s', '--client-secret', type=str, help='App Shielid API Key secret.')
+        parser.add_argument('--api-gateway-url', type=str, required=False, help = 'Optional Api gateway URL')
+        parser.add_argument('--access-token-url', type=str, required=False, help='Optional Access token URL')
 
         # find the index of the command argument
         self.command_pos = len(sys.argv)
@@ -123,7 +125,7 @@ class Aps:
         else:
             coloredlogs.install(level=logging.ERROR)
 
-        config = get_config()
+        config = get_config(args)
 
         if args.client_id and args.client_secret:
             headers = authenticate_secret(args.client_id, args.client_secret, config)
@@ -160,7 +162,7 @@ class Aps:
         parser.add_argument('--application-id', type=str, required=False, 
                             help='''Application ID. This identifies the application being protected.
                             If --skip-checks is used this argument is mandatory''')
-        
+
         # inside subcommands ignore the first command_pos argv's
         args = parser.parse_args(sys.argv[self.command_pos:])
         options = {}
