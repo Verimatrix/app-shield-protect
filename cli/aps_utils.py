@@ -126,7 +126,7 @@ def authenticate_secret(client_id, client_secret, config):
     auth = base64.b64encode(msg.encode('ascii')).decode('ascii')
     LOGGER.debug('auth ' + auth)
 
-    url = config['access-token-url']
+    url = config['access_token_url']
     headers = {}
     headers['Authorization'] = 'Basic %s' % auth
     headers['Content-type'] = 'application/json'
