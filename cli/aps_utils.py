@@ -1,34 +1,48 @@
+# Copyright (c) 2019 - 2021. Verimatrix. All Rights Reserved.
+# All information in this file is Verimatrix Confidential and Proprietary.
+
 '''Helper utilities'''
 import base64
 import plistlib
 import logging
 import os
 import shutil
-import sys
-import requests
 
 from zipfile import is_zipfile, ZipFile
 
 from pyaxmlparser import APK
 
+from aps_exceptions import ApsException
+
 LOGGER = logging.getLogger(__name__)
+
+def disable_boto_logging():
+    '''Disable logging from third party modules'''
+    modules_to_disable = ['boto', 's3transfer', 'urllib3', 'boto3', 'botocore']
+    for name in logging.Logger.manager.loggerDict:
+        if name in modules_to_disable:
+            logging.getLogger(name).setLevel(logging.CRITICAL)
 
 def get_config(args):
 
     config = {}
     config['aws_region'] = 'eu-west-1'
     config['api_gateway_url'] = 'https://aps-api.appshield.verimatrixcloud.net'
-    config['access_token_url'] = 'https://api.appshield.verimatrixcloud.net/token'
+    config['access-token-url'] = 'https://api.appshield.verimatrixcloud.net/token'
 
     if(args.api_gateway_url):
         config['api_gateway_url'] = args.api_gateway_url
 
     if(args.access_token_url):
-        config['access_token_url'] = args.access_token_url
+        config['access-token-url'] = args.access_token_url
 
 
     LOGGER.debug('Constructed config object %s', repr(config))
     return config
+
+def get_api_gw_url(config, rest_api_id):
+    ''''Returns the API Gateway URL to use for a specific path'''
+    return config['api_gateway_url'].format(rest_api_id=rest_api_id)
 
 
 def get_os(file):
@@ -37,7 +51,7 @@ def get_os(file):
         return 'android'
     if file.endswith('.xcarchive.zip'):
         return 'ios'
-    raise ValueError('Unsupported file suffix (not apk or .xcarchive.zip)')
+    raise ApsException('Unsupported file suffix (not apk or .xcarchive.zip)')
 
 def extract_file_data_from_zip(zipfile, file):
     '''Unzip a particular file from a zip archive'''
@@ -48,17 +62,23 @@ def extract_file_data_from_zip(zipfile, file):
     os.remove(filepath)
     return data
 
+ALLOWED_SUFFIXES = ['.apk', '.aab', '.xcarchive.zip']
+
 def extract_version_info(file):
     '''Extract application information from the input file to be protected'''
     version_info = {}
 
-    if not file.endswith('.apk') and not file.endswith('.aab') and not file.endswith('.xcarchive.zip'):
-        print('Error, input file must be an aab, apk or zipped xcarchive')
-        sys.exit(1)
+    suffix_ok = False
+    for _, suffix in enumerate(ALLOWED_SUFFIXES):
+        if file.endswith(suffix):
+            suffix_ok = True
+    if not suffix_ok:
+        LOGGER.critical('Error, input file must be an aab, apk or zipped xcarchive')
+        raise ApsException('Error, input file must be an aab, apk or zipped xcarchive')
 
     if not is_zipfile(file):
-        print('Error, input file is not in zipped format')
-        sys.exit(1)
+        LOGGER.critical('Error, input file is not in zipped format')
+        raise ApsException('Error, input file is not in zipped format')
 
     # Extract the AndroidManifest.xml or Info.plist from the input zip file
     # and base64 encode it. Delete the file after unzipping.
@@ -67,10 +87,10 @@ def extract_version_info(file):
         version_info['androidManifest'] = extract_file_data_from_zip(zipfile,
                                                                      'AndroidManifest.xml')
     elif file.endswith('.aab'):
-        version_info['androidManifestProtobuf'] = extract_file_data_from_zip(zipfile,
-                                                                             'base/manifest/AndroidManifest.xml')
+        version_info['androidManifestProtobuf'] = \
+            extract_file_data_from_zip(zipfile, 'base/manifest/AndroidManifest.xml')
     else:
-        # Get the foldername of the unzipped archive
+        # Get the folder name of the unzipped archive
         dirname = None
         namelist = zipfile.namelist()
         for name in namelist:
@@ -82,7 +102,7 @@ def extract_version_info(file):
             if '.app/Info.plist' in name and name.count('.app/') == 1:
                 version_info['iosBinaryPlist'] = extract_file_data_from_zip(zipfile, name)
 
-            if '%s/Info.plist' % dirname == name:
+            if f'{dirname}/Info.plist' == name:
                 version_info['iosXmlPlist'] = extract_file_data_from_zip(zipfile, name)
         if dirname:
             shutil.rmtree(dirname)
@@ -91,9 +111,10 @@ def extract_version_info(file):
 
 
 def extract_package_id(file):
+    '''Extract application package ID from binary file'''
     try:
         if file.endswith('.aab'):
-            print('Cannot display application package ID for aab files')
+            LOGGER.error('Cannot display application package ID for aab files')
             return None
 
         version_info = extract_version_info(file)
@@ -103,42 +124,15 @@ def extract_package_id(file):
         elif 'iosXmlPlist' in version_info:
             data = version_info['iosXmlPlist']
             plist = plistlib.loads(base64.b64decode(data))
-            LOGGER.info('Extracted XML plist: %s', repr(plist))
+            LOGGER.info(f'Extracted XML plist: {plist}')
             return plist['ApplicationProperties']['CFBundleIdentifier']
         elif 'iosBinaryPlist' in version_info:
             data = version_info['iosBinaryPlist']
             plist = plistlib.loads(base64.b64decode(data))
-            LOGGER.info('Extracted binary plist: %s', repr(plist))
+            LOGGER.info(f'Extracted binary plist: {plist}')
             return plist['CFBundleIdentifier'].replace('"', '')
         else:
-            raise Exception('Unsupported file type')
-
+            raise ApsException('Unsupported file type')
     except Exception as e:
-        print('Failed to extract application package ID')
-        LOGGER.warning('extract package id failed: %s', repr(e))
-        sys.exit(1)
-
-def authenticate_secret(client_id, client_secret, config):
-    '''Authentication using Cognito client credentials. Using a client ID and Client secret.
-    Returns an Access Token'''
-    msg = '%s:%s' % (client_id, client_secret)
-    LOGGER.debug('msg ' + msg)
-    auth = base64.b64encode(msg.encode('ascii')).decode('ascii')
-    LOGGER.debug('auth ' + auth)
-
-    url = config['access_token_url']
-    headers = {}
-    headers['Authorization'] = 'Basic %s' % auth
-    headers['Content-type'] = 'application/json'
-
-    LOGGER.debug('Authenticating to PMA Portal with client credentials')
-    response = requests.post(url, headers=headers, json = {'scope': 'aps'})
-    response.raise_for_status()
-    resp = response.json()
-    LOGGER.debug('Get access token response: %s', resp)
-
-    if 'token' in resp:
-        return {'Authorization' : 'Bearer %s' % resp['token']}
-    else:
-        print('Failed to authenticate, please check client ID and client secret value')
-        sys.exit(1)
+        LOGGER.error('Failed to extract application package ID: {e}')
+        raise ApsException(e) from e
