@@ -1,5 +1,7 @@
 FROM python:3.8-slim
 
+RUN apt-get update  && apt-get install jq -y
+
 ADD cli /aps-cli
 
 RUN pip install --no-cache-dir -r /aps-cli/requirements.txt
