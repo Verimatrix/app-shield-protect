@@ -17,6 +17,9 @@ inputs:
   access-token-url:
     description: 'Optional Access Token URL'
     required: false
+  subscription-type:
+    description: 'Optional Subscription Type'
+    required: false
   app-file:
     description: 'Mobile application file'
     required: true
@@ -32,4 +35,5 @@ runs:
     API_SECRET: ${{ inputs.api-key-secret }}
     API_GATEWAY_URL: ${{ inputs.api-gateway-url }}
     ACCESS_TOKEN_URL: ${{ inputs.access-token-url }}
+    SUBSCRIPTION_TYPE: ${{ inputs.subscription-type }}
     APP_FILE: ${{ inputs.app-file }}
