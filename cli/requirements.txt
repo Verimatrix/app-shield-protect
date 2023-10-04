@@ -4,3 +4,4 @@ botocore
 python_dateutil
 pyaxmlparser
 backoff
+coloredlogs
