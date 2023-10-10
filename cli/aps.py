@@ -85,9 +85,6 @@ class Aps:
 
         parser.add_argument('command', help='Command to run')
 
-        parser.add_argument('-u', '--username', type=str, help='Username (email)')
-        parser.add_argument('-p', '--password', type=str, help='Password')
-
         parser.add_argument('-c', '--client-id', type=str, help='Client ID')
         parser.add_argument('-s', '--client-secret', type=str, help='Client secret')
 

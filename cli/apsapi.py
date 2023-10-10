@@ -45,9 +45,9 @@ def construct_headers(token):
 class ApsApi():
     '''Class for sending commands to APS REST API'''
 
-    def __init__(self, environment, **kwargs):
+    def __init__(self, args, **kwargs):
 
-        self.config = get_config(environment)
+        self.config = get_config(args)
         self.vmx_platform = kwargs.pop('vmx_platform', False)
         self.wait_seconds = kwargs.pop('wait_seconds', 2)
         self.rest_api_id = kwargs.pop('rest_api_id', '')
