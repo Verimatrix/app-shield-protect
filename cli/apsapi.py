@@ -424,6 +424,10 @@ class ApsApi():
             shutil.copyfileobj(response.raw, file_handle)
         LOGGER.info(f'Protected file downloaded to {local_filename}')
 
+        result_file = open('protect_result.txt', 'w')
+        result_file.write(local_filename)
+        result_file.close()
+
     def add_build_to_application(self, build_id, application_id):
         '''Associate a build to an application'''
         url = f'{self.api_gw_url}/builds/{build_id}/app'
