@@ -1,18 +1,10 @@
 # Copyright (c) 2019 - 2021. Verimatrix. All Rights Reserved.
 # All information in this file is Verimatrix Confidential and Proprietary.
-
-
-'''Authenticate to Cognito using username and password credentials'''
 import base64
 import logging
 
-import boto3
-import botocore
-from botocore.config import Config
-
 from aps_requests import ApsRequest
 from aps_exceptions import ApsException
-from aps_advanced_security_data import get_user_agent, generate_advanced_security_data
 
 LOGGER = logging.getLogger(__name__)
 

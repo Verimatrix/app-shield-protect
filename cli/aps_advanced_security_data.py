@@ -63,14 +63,3 @@ def generate_signature(payload, user_pool_client_id, version):
     mac.update(version.encode())
     mac.update(payload.encode())
     return base64.b64encode(mac.digest()).decode('ascii')
-
-
-def generate_advanced_security_data(username, user_pool_id, user_pool_client_id):
-    payload = generate_payload(username, user_pool_id)
-    asd = {
-        'payload': payload,
-        'signature': generate_signature(payload, user_pool_client_id, VERSION),
-        'version': VERSION,
-    }
-    asdStr = json.dumps(asd)
-    return base64.b64encode(asdStr.encode('utf8')).decode('ascii')
