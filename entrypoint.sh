@@ -20,6 +20,6 @@ fi
 RESULT_FILE=protect_result.txt
 if [ -f "$RESULT_FILE" ]; then
   protected_file="$(cat protect_result.txt)"
-  echo "{protected-file}={$protected_file}" >> "$GITHUB_OUTPUT"
+  echo "PROTECTED_FILE=$protected_file" >> "$GITHUB_OUTPUT"
 fi
 
