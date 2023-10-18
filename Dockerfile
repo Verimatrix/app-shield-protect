@@ -1,4 +1,6 @@
-FROM python:3-slim
+FROM python:3.8-slim
+
+RUN apt-get update  && apt-get install jq -y
 
 ADD cli /aps-cli
 
