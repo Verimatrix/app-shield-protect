@@ -2,6 +2,7 @@
 # All information in this file is Verimatrix Confidential and Proprietary.
 import base64
 import logging
+import json
 
 from aps_requests import ApsRequest
 from aps_exceptions import ApsException
@@ -22,6 +23,11 @@ def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
         body = {}
         body['userEmail'] = api_key_id
         body['apiKey'] = api_key
+
+        json_formatted_str = json.dumps(body, indent=2)
+
+        LOGGER.debug('Authenticating with platform API key')
+        LOGGER.debug(json_formatted_str)
 
         response = ApsRequest.post(url, json={'body': body})
         resp = response.json()
