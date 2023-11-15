@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
-    '''Authentication using an API Key. sReturns an token that can be used as a HTTP authorization header'''
+    '''Authentication using an API Key. Returns an token that can be used as a HTTP authorization header'''
 
     resp = {}
     if vmx_platform:
@@ -25,11 +25,9 @@ def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
         body['apiKey'] = api_key
 
         json_formatted_str = json.dumps(body, indent=2)
-
-        LOGGER.debug('Authenticating with platform API key')
         LOGGER.debug(json_formatted_str)
 
-        response = ApsRequest.post(url, json={'body': body})
+        response = ApsRequest.post(url, json=body)
         resp = response.json()
     else:
         LOGGER.debug('Authenticating with client credentials')
