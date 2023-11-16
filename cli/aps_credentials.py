@@ -2,6 +2,7 @@
 # All information in this file is Verimatrix Confidential and Proprietary.
 import base64
 import logging
+import json
 
 from aps_requests import ApsRequest
 from aps_exceptions import ApsException
@@ -13,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
-    '''Authentication using an API Key. sReturns an token that can be used as a HTTP authorization header'''
+    '''Authentication using an API Key. Returns an token that can be used as a HTTP authorization header'''
 
     resp = {}
     if vmx_platform:
@@ -22,8 +23,8 @@ def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
         body = {}
         body['userEmail'] = api_key_id
         body['apiKey'] = api_key
-
-        response = ApsRequest.post(url, json={'body': body})
+        
+        response = ApsRequest.post(url, json=body)
         resp = response.json()
     else:
         LOGGER.debug('Authenticating with client credentials')

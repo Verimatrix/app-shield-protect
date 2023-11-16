@@ -29,13 +29,16 @@ def get_config(args):
     config['aws_region'] = 'eu-west-1'
     config['api_gateway_url'] = 'https://aps-api.appshield.verimatrixcloud.net'
     config['access-token-url'] = 'https://api.appshield.verimatrixcloud.net/token'
+    config['platform-access-token-url'] = 'https://ssoapi-ng.platform.verimatrixcloud.net/v1/token'
 
     if(args.api_gateway_url):
         config['api_gateway_url'] = args.api_gateway_url
 
     if(args.access_token_url):
-        config['access-token-url'] = args.access_token_url
-
+        if (args.platform):
+            config['platform-access-token-url'] = args.access_token_url
+        else:
+            config['access-token-url'] = args.access_token_url
 
     LOGGER.debug('Constructed config object %s', repr(config))
     return config

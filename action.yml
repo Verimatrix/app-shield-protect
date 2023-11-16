@@ -23,6 +23,9 @@ inputs:
   app-file:
     description: 'Mobile application file'
     required: true
+  platform:
+    description: 'Enable platform functionality'
+    required: false
 
 outputs:
   protected-file:
@@ -37,3 +40,4 @@ runs:
     ACCESS_TOKEN_URL: ${{ inputs.access-token-url }}
     SUBSCRIPTION_TYPE: ${{ inputs.subscription-type }}
     APP_FILE: ${{ inputs.app-file }}
+    PLATFORM: ${{inputs.platform}}
