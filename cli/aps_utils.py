@@ -7,6 +7,7 @@ import plistlib
 import logging
 import os
 import shutil
+import sys
 
 from zipfile import is_zipfile, ZipFile
 
@@ -139,3 +140,16 @@ def extract_package_id(file):
     except Exception as e:
         LOGGER.error('Failed to extract application package ID: {e}')
         raise ApsException(e) from e
+
+
+LOGGER = logging.getLogger(__name__)
+
+def setup_logging(log_level):
+    '''Setup logging'''
+    LOGGER.setLevel(log_level)
+
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    LOGGER.addHandler(handler)
