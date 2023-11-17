@@ -14,12 +14,10 @@ import dateutil.parser
 
 from aps_utils import (
     get_config, disable_boto_logging, extract_package_id, get_api_gw_url,
-    get_os, extract_version_info)
+    get_os, extract_version_info, LOGGER)
 from aps_credentials import authenticate_api_key
 from aps_exceptions import ApsException
 from aps_requests import ApsRequest
-
-LOGGER = logging.getLogger(__name__)
 
 OPENAPI_VERSION = '1.1.0'
 
@@ -52,7 +50,11 @@ class ApsApi():
         self.wait_seconds = kwargs.pop('wait_seconds', 2)
         self.rest_api_id = kwargs.pop('rest_api_id', '')
         self.authenticated = False
+        self.tokenExpiration = 0
         self.headers = None
+        self.api_key_id = None
+        self.api_key = None
+        self.api_key_scope = None
         self.api_gw_url = get_api_gw_url(self.config, self.rest_api_id)
 
         verbose_logs = kwargs.pop('verbose_logs', False)
@@ -64,16 +66,45 @@ class ApsApi():
         '''Have we authenticated'''
         return self.authenticated
 
+    def ensure_authenticated(self):
+        if not self.api_key:
+            raise Exception("Attempt to ensure authenticated but have no API key")
+
+        if not self.authenticated:
+            '''Not authenticated'''
+            LOGGER.debug(f'Not authenticated yet, will proceed to get token')
+            self.authenticate_api_key(self.api_key_id, self.api_key,scope=self.api_key_scope)
+
+        current_time = time.time()
+        LOGGER.debug(f'Evaluating needs to re-authenticate {self.tokenExpiration} vs {current_time}')
+
+        if self.authenticated and (current_time+45 > self.tokenExpiration):
+            '''Token about to expire, will authenticate'''
+            LOGGER.debug(f'Authenticated but token will expire shortly, will proceed to get token')
+            self.authenticate_api_key(self.api_key_id, self.api_key,scope=self.api_key_scope)
+
     def authenticate_api_key(self, api_key_id, api_key, **kwargs):
+
+        '''Capture the api keys for future refresh'''
+        self.api_key_id = api_key_id
+        self.api_key = api_key
+        self.api_key_scope = kwargs.pop('scope',None)
+
         '''Authenticate using API Keys'''
-        token = authenticate_api_key(api_key_id, api_key,
+        token,tokenExpiration = authenticate_api_key(api_key_id, api_key,
                                      self.config, self.vmx_platform, **kwargs)
+
+        if tokenExpiration != None:
+            self.tokenExpiration = time.time() + tokenExpiration
+            LOGGER.info(f'Token expires {self.tokenExpiration}')
+
         self.headers = construct_headers(token)
         self.authenticated = True
 
     def get_account_info(self):
         '''Return account info'''
         url = f'{self.api_gw_url}/report/account'
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers)
         LOGGER.debug(f'Response headers: {response.headers}')
         LOGGER.debug(f'Get account info response: {response.json()}')
@@ -95,6 +126,7 @@ class ApsApi():
         if subscription_type:
             body['subscriptionType'] = subscription_type
 
+        self.ensure_authenticated()
         response = ApsRequest.post(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Post application response: {response.json()}')
         return response.json()
@@ -108,6 +140,7 @@ class ApsApi():
         body['permissionPrivate'] = permissions['private']
         body['permissionUpload'] = False if permissions['private'] else not permissions['no_upload']
         body['permissionDelete'] = False if permissions['private'] else not permissions['no_delete']
+        self.ensure_authenticated()
         response = ApsRequest.patch(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Update application response: {response.json()}')
         return response.json()
@@ -132,6 +165,7 @@ class ApsApi():
         if not application_id and self.wait_seconds:
             time.sleep(self.wait_seconds)
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers, params=params)
         LOGGER.debug(f'Response headers: {response.headers}')
         LOGGER.debug(f'Get applications response: {response.json()}')
@@ -144,6 +178,7 @@ class ApsApi():
 
         url = f'{self.api_gw_url}/applications/{application_id}'
 
+        self.ensure_authenticated()
         response = ApsRequest.delete(url, headers=self.headers)
         LOGGER.debug(f'Delete application response: {response.json()}')
         return response.json()
@@ -167,6 +202,7 @@ class ApsApi():
         if not build_id and self.wait_seconds:
             time.sleep(self.wait_seconds)
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers, params=params)
         builds = response.json()
         LOGGER.debug(f'Listing builds for app_id:{application_id} build_id:{build_id} - {builds}')
@@ -182,6 +218,7 @@ class ApsApi():
             body['applicationId'] = application_id
         if subscription_type:
             body['subscriptionType'] = subscription_type
+        self.ensure_authenticated()
         response = ApsRequest.post(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Post build response: {response.json()}')
         return response.json()
@@ -197,6 +234,7 @@ class ApsApi():
         body = {}
         body['os'] = 'ios' if file.endswith('.xcarchive.zip') else 'android'
         body['osData'] = version_info
+        self.ensure_authenticated()
         response = ApsRequest.put(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Set build metadata response: {response.json()}')
         return response.json()
@@ -220,6 +258,7 @@ class ApsApi():
         if artifact_type:
             params['artifactType'] = artifact_type
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers, params=params)
         data = response.json()
         upload_id = data['UploadId']
@@ -237,6 +276,7 @@ class ApsApi():
         if artifact_type:
             body['artifactType'] = artifact_type
 
+        self.ensure_authenticated()
         response = ApsRequest.post(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Complete upload response: {response.json()}')
 
@@ -252,6 +292,7 @@ class ApsApi():
         if artifact_type:
             body['artifactType'] = artifact_type
 
+        self.ensure_authenticated()
         response = ApsRequest.post(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Abort upload response: {response.json()}')
 
@@ -265,6 +306,7 @@ class ApsApi():
             'uploadId': upload_id
         }
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers, params=params)
         LOGGER.debug(f'Get upload url response: {response.text}')
 
@@ -279,6 +321,9 @@ class ApsApi():
 
     def multipart_upload(self, build_id, file, artifact_type=None):
         '''Multipart upload method'''
+
+        LOGGER.info(f'Uploading application {file}')
+
         upload_id = upload_name = None
         try:
             upload_id, upload_name = self.upload_start(build_id, file, artifact_type)
@@ -349,6 +394,7 @@ class ApsApi():
         '''Delete a build'''
         url = f'{self.api_gw_url}/builds/{build_id}'
 
+        self.ensure_authenticated()
         response = ApsRequest.delete(url, headers=self.headers)
         LOGGER.debug(f'Delete build response: {response.json()}')
         return response.json()
@@ -360,6 +406,7 @@ class ApsApi():
         params = {}
         params['cmd'] = 'delete-ticket'
         params['ticket'] = ticket_id
+        self.ensure_authenticated()
         response = ApsRequest.patch(url, headers=self.headers, params=params)
         LOGGER.debug(f'Delete build ticket response: {response.json()}')
         return response.json()
@@ -371,6 +418,7 @@ class ApsApi():
         params = {}
         params['ticket'] = ticket_id
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers, params=params)
         LOGGER.debug(f'Get build ticket response: {response.json()}')
         return response.json()
@@ -382,6 +430,7 @@ class ApsApi():
         params = {}
         params['cmd'] = 'protect'
 
+        self.ensure_authenticated()
         response = ApsRequest.patch(url, headers=self.headers, params=params)
         LOGGER.debug(f'Protect start response: {response.json()}')
         return response.json()
@@ -397,6 +446,7 @@ class ApsApi():
         params = {}
         params['cmd'] = 'cancel'
 
+        self.ensure_authenticated()
         response = ApsRequest.patch(url, headers=self.headers, params=params)
         LOGGER.debug(f'Protect cancel response: {response.json()}')
         return response.json()
@@ -409,6 +459,7 @@ class ApsApi():
         params = {}
         params['url'] = 'protected'
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers, params=params)
         LOGGER.debug(f'Protect get download URL, response: {response.text}')
 
@@ -418,6 +469,7 @@ class ApsApi():
         local_filename = local_filename.split('?')[0]
         LOGGER.info('Starting download of protected file')
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, stream=True)
         LOGGER.debug(f'Download protection file response: {response}')
         with open(local_filename, 'wb') as file_handle:
@@ -435,6 +487,7 @@ class ApsApi():
         body = {}
         body['applicationId'] = application_id
 
+        self.ensure_authenticated()
         response = ApsRequest.put(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Add build to application response: {response.json()}')
         return response.json()
@@ -444,6 +497,9 @@ class ApsApi():
         This operation does the following
         - protect_start
         - poll protection state (protect_get_status) until protection is completed'''
+
+        LOGGER.info(f'Starting protection for build {build_id}')
+
         # Start protection
         response = self.protect_start(build_id)
         if 'errorMessage' in response:
@@ -451,7 +507,9 @@ class ApsApi():
             self.delete_build(build_id)
             return False
 
+        LOGGER.info(f'Protection stated, will wait for completion of build {build_id}')
 
+        start_time = time.time()
         while True:
             build = self.protect_get_status(build_id)
 
@@ -551,6 +609,7 @@ class ApsApi():
 
         url = f'{self.api_gw_url}/report/artifacts?buildId={build_id}'
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers)
 
         outdir = os.getcwd() + os.sep + build_id
@@ -563,6 +622,7 @@ class ApsApi():
             local_filename = local_filename.split('?')[0]
             LOGGER.info(f'Downloading artifact {local_filename}')
             local_filename = outdir + os.sep + local_filename
+            self.ensure_authenticated()
             response = ApsRequest.get(url, stream=True)
             with open(local_filename, 'wb') as file_handle:
                 shutil.copyfileobj(response.raw, file_handle)
@@ -580,6 +640,7 @@ class ApsApi():
         params = {}
 
         url = f'{self.api_gw_url}/report/statistics?start={start_time}&end={end_time}'
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers, params=params)
         return response.json()
 
@@ -595,6 +656,7 @@ class ApsApi():
         if file:
             with open(file, 'rb') as file_handle:
                 body['configuration'] = json.load(file_handle)
+        self.ensure_authenticated()
         response = ApsRequest.put(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Set protection configuration response: {response.json()}')
         return response.json()
@@ -611,6 +673,7 @@ class ApsApi():
                 body['certificate'] = file_handle.read()
                 body['certificateFileName'] = os.path.basename(file)
         LOGGER.info(body)
+        self.ensure_authenticated()
         response = ApsRequest.put(url, headers=self.headers, data=json.dumps(body))
         LOGGER.debug(f'Set signing certificate response: {response.json()}')
         return response.json()
@@ -628,6 +691,7 @@ class ApsApi():
         if version:
             params['version'] = version
 
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers, params=params)
         config = response.json()
         LOGGER.debug('Get SAIL configuration')
@@ -636,5 +700,6 @@ class ApsApi():
     def get_version(self):
         '''Get version'''
         url = f'{self.api_gw_url}/version'
+        self.ensure_authenticated()
         response = ApsRequest.get(url, headers=self.headers)
         return response.json()

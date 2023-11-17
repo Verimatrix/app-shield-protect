@@ -10,14 +10,13 @@ import traceback
 import coloredlogs
 
 from apsapi import ApsApi
-
+from aps_utils import (
+    setup_logging, LOGGER)
 
 SUBSCRIPTION_TYPES=['APPSHIELD_STANDALONE',
                     'APPSHIELD_PLATFORM',
                     'COUNTERSPY_PLATFORM',
                     'XTD_PLATFORM']
-
-LOGGER = logging.getLogger(__name__)
 
 # set environment variables that control coloredlog module output
 os.environ['COLOREDLOGS_LOG_FORMAT'] = '%(levelname)s:%(message)s'
@@ -49,6 +48,9 @@ def supported_commands():
 class Aps:
     '''Class encapsulating all supported command line options'''
     def __init__(self):
+
+        setup_logging(logging.INFO)
+
         self.commands = None
 
         parser = argparse.ArgumentParser(

@@ -7,7 +7,8 @@ import json
 from aps_requests import ApsRequest
 from aps_exceptions import ApsException
 
-LOGGER = logging.getLogger(__name__)
+from aps_utils import (
+    setup_logging, LOGGER)
 
 
 ###########################################################################
@@ -18,7 +19,7 @@ def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
 
     resp = {}
     if vmx_platform:
-        LOGGER.debug('Authenticating with platform API key')
+        LOGGER.info('Authenticating with platform API key')
         url = config['platform-access-token-url']
         body = {}
         body['userEmail'] = api_key_id
@@ -26,8 +27,18 @@ def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
         
         response = ApsRequest.post(url, json=body)
         resp = response.json()
+
+        LOGGER.debug(f'Got platform access token response: {resp}')
+
+        if not 'token' in resp:
+            LOGGER.error(
+                'Failed to authenticate, please check client ID and client secret value')
+            raise ApsException(
+                'Failed to authenticate, please check client ID and client secret value')
+        return f'Bearer {resp["token"]}',resp["expirationTime"]
+
     else:
-        LOGGER.debug('Authenticating with client credentials')
+        LOGGER.info('Authenticating with client credentials')
         msg = f'{api_key_id}:{api_key}'
         auth = base64.b64encode(msg.encode('ascii')).decode('ascii')
 
@@ -40,11 +51,11 @@ def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
         response = ApsRequest.post(url, headers=headers, json={'scope': scope})
         resp = response.json()
 
-    LOGGER.debug(f'Get access token response: {resp}')
+        LOGGER.debug(f'Got appshield access token response: {resp}')
 
-    if not 'token' in resp:
-        LOGGER.error(
-            'Failed to authenticate, please check client ID and client secret value')
-        raise ApsException(
-            'Failed to authenticate, please check client ID and client secret value')
-    return f'Bearer {resp["token"]}'
+        if not 'token' in resp:
+            LOGGER.error(
+                'Failed to authenticate, please check client ID and client secret value')
+            raise ApsException(
+                'Failed to authenticate, please check client ID and client secret value')
+        return f'Bearer {resp["token"]}',None
