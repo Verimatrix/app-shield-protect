@@ -49,8 +49,6 @@ class Aps:
     '''Class encapsulating all supported command line options'''
     def __init__(self):
 
-        setup_logging(logging.INFO)
-
         self.commands = None
 
         parser = argparse.ArgumentParser(

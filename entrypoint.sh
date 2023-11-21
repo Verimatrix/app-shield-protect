@@ -14,6 +14,10 @@ if [ -z "${SUBSCRIPTION_TYPE}" ]; then
     exit 1
   fi
   SUBSCRIPTION=$(cat account.info | jq -r '.["customer"]["subscriptions"][0]["type"]')
+  if [ $? != 0 ] ; then
+    echo "Errors retrieving customer subscription information"
+    exit 1
+  fi
   echo "Subscription Type retrieved [${SUBSCRIPTION}]"
 else
   SUBSCRIPTION="${SUBSCRIPTION_TYPE}";
