@@ -3,6 +3,7 @@
 import base64
 import logging
 import json
+import time
 
 from aps_requests import ApsRequest
 from aps_exceptions import ApsException
@@ -53,9 +54,12 @@ def authenticate_api_key(api_key_id, api_key, config, vmx_platform, **kwargs):
 
         LOGGER.debug(f'Got appshield access token response: {resp}')
 
+        current_time = time.time()
+        expiration_time = resp["expiry"] - current_time
+
         if not 'token' in resp:
             LOGGER.error(
                 'Failed to authenticate, please check client ID and client secret value')
             raise ApsException(
                 'Failed to authenticate, please check client ID and client secret value')
-        return f'Bearer {resp["token"]}',None
+        return f'Bearer {resp["token"]}',expiration_time
