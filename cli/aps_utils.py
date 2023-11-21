@@ -147,9 +147,3 @@ LOGGER = logging.getLogger(__name__)
 def setup_logging(log_level):
     '''Setup logging'''
     LOGGER.setLevel(log_level)
-
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    LOGGER.addHandler(handler)
