@@ -19,7 +19,8 @@ Action requires the following parameters:
    * `app_file` -  mobile application file (_.zip_, _.apk_ or _aab_)
 
 Key ID and key secret can be created and retrieved in [XTD or Counterspy](https://portal.platform.verimatrixcloud.net/)
-portal under "Overview" menu, in the "CI/CD integration" panel, "Manage API Keys".
+portal under "Settings" menu, in the "API Key Manager" panel. Simply click the
+"Generate New API Key" button for generating a new key.
 
 ## Outputs
 
