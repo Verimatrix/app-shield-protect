@@ -10,17 +10,27 @@ obfuscation, environmental checks and binary integrity checks.
 
 All **XTD** subscription tiers support this action, while for **Counterspy** you need a Standard subscription.
 
-## Inputs
+## API Keys
 
-Action requires the following parameters: 
+In order to use the action, an API key is required.  This can be created and retrieved in [XTD or Counterspy](https://portal.platform.verimatrixcloud.net/)
+portal under "Settings" menu, in the "API Key Manager" panel. Simply click the "Generate New API Key" button for generating a new key.
 
-   * `api-key-id` -  api key ID
-   * `api-key-secret` - api key secret
+```json
+{
+  "appClientId": "7m.........0s5i",
+  "appClientSecret": "cm1m65g.......jt",
+  "encodedKey": "Njd.........tbzBzNW.......0"
+}
+```
+Once generated, you are adviced to add the API key owners username (email) and the value of the 'encodedKey' field to your project as action secrets and reference those in your workflow configuration.
+
+## Input
+
+Action requires the following parameters and corresponding values:
+
+   * `api-key-id` -  The username (email) of the owner the API key generated above
+   * `api-key-secret` - Value of the 'encodedKey' field of the API key generated above
    * `app_file` -  mobile application file (_.zip_, _.apk_ or _aab_)
-
-Key ID and key secret can be created and retrieved in [XTD or Counterspy](https://portal.platform.verimatrixcloud.net/)
-portal under "Settings" menu, in the "API Key Manager" panel. Simply click the
-"Generate New API Key" button for generating a new key.
 
 ## Outputs
 
@@ -39,6 +49,6 @@ to save the file as a build artifact.
   uses: verimatrix/app-protect@v2
   with:
     api-key-id: ${{ secrets.API_KEY_ID }}
-    api-key-secret: ${{ secrets.API_KEY_SECRET }}
+    api-key-secret: ${{ secrets.API_ENCODED_KEY }}
     app-file: ${{ github.event.inputs.file }}
 ```
