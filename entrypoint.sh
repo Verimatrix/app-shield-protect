@@ -1,42 +1,20 @@
-#!/bin/sh
+#!/bin/bash
+set -e  # Exit immediately if a command fails
 
-# retrieving account info for getting subscription_type if it's not provided
+# Set default subscription if not provided
+SUBSCRIPTION="${SUBSCRIPTION:-XTD_PLATFORM}"
 
+# Run vmx-aps command
+vmx-aps -l=DEBUG \
+  --api-key "$API_SECRET" \
+  --api-gateway-url "$API_GATEWAY_URL" \
+  --access-token-url "$ACCESS_TOKEN_URL" \
+  protect --subscription-type "$SUBSCRIPTION" \
+  --file "$APP_FILE"
 
-ENABLE_PLATFORM=""
-if [ "${PLATFORM}" != "" ] ; then
-  ENABLE_PLATFORM="-P"
+# Check for protect_result.txt and output to GitHub Actions
+RESULT_FILE="protect_result.txt"
+if [[ -f "$RESULT_FILE" ]]; then
+  PROTECTED_FILE="$(cat "$RESULT_FILE")"
+  echo "PROTECTED_FILE=$PROTECTED_FILE" >> "$GITHUB_OUTPUT"
 fi
-
-if [ -z "${SUBSCRIPTION_TYPE}" ]; then
-  python3 /aps-cli/aps.py -l=DEBUG ${ENABLE_PLATFORM} -c "$API_KEY_ID" -s "$API_SECRET" --api-gateway-url "$API_GATEWAY_URL" --access-token-url "$ACCESS_TOKEN_URL" get-account-info  > account.info
-  if [ $? != 0 ] ; then
-    exit 1
-  fi
-  SUBSCRIPTION=$(cat account.info | jq -r '.["customer"]["subscriptions"][0]["type"]')
-  if [ $? != 0 ] ; then
-    echo "Errors retrieving customer subscription information"
-    exit 1
-  fi
-  echo "Subscription Type retrieved [${SUBSCRIPTION}]"
-else
-  SUBSCRIPTION="${SUBSCRIPTION_TYPE}";
-fi
-
-if [ -n "${SUBSCRIPTION}" ]; then
-  python3 /aps-cli/aps.py -l=DEBUG ${ENABLE_PLATFORM} -c "$API_KEY_ID" -s "$API_SECRET"  --api-gateway-url "$API_GATEWAY_URL" --access-token-url "$ACCESS_TOKEN_URL" protect --subscription-type "$SUBSCRIPTION" --file "$APP_FILE"
-  if [ $? != 0 ] ; then
-    exit 1
-  fi
-else
-  echo "Error: Cannot resolve SUBSCRIPTION type"
-fi
-
-
-
-RESULT_FILE=protect_result.txt
-if [ -f "$RESULT_FILE" ]; then
-  protected_file="$(cat protect_result.txt)"
-  echo "PROTECTED_FILE=$protected_file" >> "$GITHUB_OUTPUT"
-fi
-
