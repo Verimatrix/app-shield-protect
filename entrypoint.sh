@@ -2,7 +2,7 @@
 set -e  # Exit immediately if a command fails
 
 # Set default subscription if not provided
-SUBSCRIPTION="${SUBSCRIPTION:-XTD_PLATFORM}"
+SUBSCRIPTION="${SUBSCRIPTION_TYPE:-XTD_PLATFORM}"
 
 # Run vmx-aps command
 vmx-aps -l=DEBUG \
