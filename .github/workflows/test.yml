@@ -15,4 +15,3 @@ jobs:
         with:
           api-key-secret: ${{ secrets.TEST_KEY }}
           app-file: ./MoleculesAPK-1.0.apk
-          subscription-type: XTD_PLATFORM
