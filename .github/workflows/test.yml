@@ -1,17 +1,20 @@
 name: "Test"
 
 on:
-  push:
+  push:    
 
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
   
-      - uses: ./
+      - uses: ./    # Run itself
         with:
           api-key-secret: ${{ secrets.TEST_KEY }}
-          app-file: ./MoleculesAPK-1.0.apk
+          app-file: ./testapp/MoleculesAPK-1.0.apk
+          api-gateway-url: https://aps-api.appshield.verimatrixdevcloud.net
+          access-token-url: https://ssoapi-ng.platform.verimatrixdevcloud.net/v1/token
+          subscription-type: APPSHIELD_PLATFORM
