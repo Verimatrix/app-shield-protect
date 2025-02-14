@@ -5,9 +5,6 @@ branding:
   icon: upload-cloud
   color: purple
 inputs:
-  api-key-id:
-    description: 'API Key ID'
-    required: true
   api-key-secret:
     description: 'API Key Secret'
     required: true
@@ -23,9 +20,6 @@ inputs:
   app-file:
     description: 'Mobile application file'
     required: true
-  platform:
-    description: 'Enable platform functionality'
-    required: false
 
 outputs:
   protected-file:
@@ -34,10 +28,8 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   env:
-    API_KEY_ID: ${{ inputs.api-key-id }}
     API_SECRET: ${{ inputs.api-key-secret }}
     API_GATEWAY_URL: ${{ inputs.api-gateway-url }}
     ACCESS_TOKEN_URL: ${{ inputs.access-token-url }}
     SUBSCRIPTION_TYPE: ${{ inputs.subscription-type }}
     APP_FILE: ${{ inputs.app-file }}
-    PLATFORM: ${{inputs.platform}}
