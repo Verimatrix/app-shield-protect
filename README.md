@@ -51,9 +51,9 @@ to save the file as a build artifact.
 ## Usage
 
 ```yaml
-- name: Application Protection
+- name: App Shield protect
   id: app-protect
-  uses: verimatrix/app-protect@v2
+  uses: Verimatrix/app-shield-protect@3.0.0
   with:
     api-key-secret: ${{ secrets.API_ENCODED_KEY }}
     app-file: ${{ github.event.inputs.file }}
