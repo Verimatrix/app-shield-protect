@@ -29,14 +29,21 @@ Once generated, you are adviced to add the value of the 'encodedKey' field to yo
 
 Action requires the following parameters and corresponding values:
 
-- `api-key-secret` - Value of the 'encodedKey' field of the API key generated above
-- `app_file` - mobile application file (_.zip_, _.apk_ or _aab_)
+| Name                | Required | Description                                                           |
+| ------------------- | -------- | --------------------------------------------------------------------- |
+| `api-key-secret`    | ✅       | The `encodedKey` from your API key JSON                               |
+| `app-file`          | ✅       | Path to the app file (`.apk`, `.aab`, or `.zip`)                      |
+| `api-gateway-url`   | ❌       | (Optional) Custom API Gateway URL                                     |
+| `access-token-url`  | ❌       | (Optional) Custom Access Token URL                                    |
+| `subscription-type` | ❌       | (Optional) Override for subscription type (e.g., `XTD`, `COUNTERSPY`) |
 
 ## Outputs
 
 Action produces a single output:
 
-- `protected-file` - protected file name that was downloaded from APS.
+| Name             | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| `protected-file` | The filename of the protected app downloaded from the API |
 
 The `protected-file` name can be used with [upload-artifact](https://github.com/actions/upload-artifact) action
 to save the file as a build artifact.
@@ -44,9 +51,9 @@ to save the file as a build artifact.
 ## Usage
 
 ```yaml
-- name: Application Protection
+- name: App Shield protect
   id: app-protect
-  uses: verimatrix/app-protect@v2
+  uses: Verimatrix/app-shield-protect@3.0.0
   with:
     api-key-secret: ${{ secrets.API_ENCODED_KEY }}
     app-file: ${{ github.event.inputs.file }}
