@@ -7,18 +7,23 @@ branding:
 inputs:
   api-key-secret:
     description: 'API Key Secret'
+    deprecationMessage: 'This GH action is deprecated. Please use APS command line wrapper directly https://pypi.org/project/vmx-aps/'
     required: true
   api-gateway-url:
     description: 'Optional API Gateway URL'
+    deprecationMessage: 'This GH action is deprecated. Please use APS command line wrapper directly https://pypi.org/project/vmx-aps/'
     required: false
   access-token-url:
     description: 'Optional Access Token URL'
+    deprecationMessage: 'This GH action is deprecated. Please use APS command line wrapper directly https://pypi.org/project/vmx-aps/'
     required: false
   subscription-type:
     description: 'Optional Subscription Type'
+    deprecationMessage: 'This GH action is deprecated. Please use APS command line wrapper directly https://pypi.org/project/vmx-aps/'
     required: false
   app-file:
     description: 'Mobile application file'
+    deprecationMessage: 'This GH action is deprecated. Please use APS command line wrapper directly https://pypi.org/project/vmx-aps/'
     required: true
 
 outputs:
