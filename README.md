@@ -1,5 +1,9 @@
-# Verimatrix XTD and Counterspy
-
+# Verimatrix XTD and Counterspy [DEPRECATED]
+- - -
+⚠️ **DEPRECATED** ⚠️
+This action is deprecated and will no longer be maintained. Please use
+the [vmx-aps - APS command line wrapper](https://pypi.org/project/vmx-aps/) instead.
+- - - 
 This action integrates Verimatrix Extended Threat Defense and Counterspy into your GitHub build workflow. It automates
 the protection of your Android and iOS apps so you can run it whenever a new version
 of your application is built.
